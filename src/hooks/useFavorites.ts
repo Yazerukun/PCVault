@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const KEY = 'pcvault:favs'
 
@@ -19,8 +19,9 @@ export function useFavorites() {
     }
   }, [favs])
 
-  const toggle = (id: string) =>
+  const toggle = useCallback((id: string) => {
     setFavs((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }, [])
 
   return { favs, toggle }
 }

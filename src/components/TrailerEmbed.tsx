@@ -1,4 +1,4 @@
-import type { Game } from '../data/games'
+import type { Game } from '../data/gameTypes'
 
 export default function TrailerEmbed({ game }: { game: Game }) {
   if (!game.trailer) return null

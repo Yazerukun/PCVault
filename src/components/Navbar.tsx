@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { games } from '../data/games'
+import { useGames } from '../data/useGames'
+import type { Game } from '../data/gameTypes'
 
 export function LogoMark({ size = 30 }: { size?: number }) {
   return (
@@ -45,6 +46,8 @@ export default function Navbar({
   const [q, setQ] = useState('')
   const [cursor, setCursor] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const catalog = useGames() ?? []
+  const games: Game[] = catalog
 
   const results = useMemo(() => {
     const t = q.trim().toLowerCase()
@@ -52,7 +55,7 @@ export default function Navbar({
     return games
       .filter((g) => g.title.toLowerCase().includes(t) || g.genres.some((x) => x.toLowerCase().includes(t)))
       .slice(0, 8)
-  }, [q])
+  }, [q, games])
 
   useEffect(() => setCursor(0), [q, searchOpen])
 

@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
-import { games, allGenres } from '../data/games'
+import { useEffect, useMemo, useState } from 'react'
+import { allGenres } from '../data/games'
+import { useGames } from '../data/useGames'
 import Navbar, { LogoMark } from '../components/Navbar'
 import Hero from '../components/Hero'
 import GameGrid from '../components/GameGrid'
@@ -15,30 +16,54 @@ export default function Home() {
   const [sort, setSort] = useState('default')
   const [favOnly, setFavOnly] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [atTop, setAtTop] = useState(true)
   const { favs, toggle } = useFavorites()
+  const games = useGames()
 
-  const genres = useMemo(() => allGenres(games), [])
+  useEffect(() => {
+    const onScroll = () => {
+      const t = window.scrollY < 80
+      if (t !== atTop) setAtTop(t)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [atTop])
+
+  const genres = useMemo(() => (games ? allGenres(games) : []), [games])
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {}
-    for (const g of games) for (const x of new Set(g.genres)) map[x] = (map[x] || 0) + 1
+    for (const g of games ?? []) for (const x of new Set(g.genres)) map[x] = (map[x] || 0) + 1
     return map
-  }, [])
+  }, [games])
 
-  const featured = useMemo(() => games.find((g) => g.cover) ?? games[0], [])
+  const featured = useMemo(() => (games ?? []).find((g) => g.cover) ?? (games ?? [])[0], [games])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return games.filter((g) => {
+    return (games ?? []).filter((g) => {
       const matchQ = !q || g.title.toLowerCase().includes(q) || g.genres.some((x) => x.toLowerCase().includes(q))
       const matchG = genre === 'All' || g.genres.includes(genre)
       const matchFav = !favOnly || favs.includes(g.id)
       return matchQ && matchG && matchFav
     })
-  }, [query, genre, favOnly, favs])
+  }, [query, genre, favOnly, favs, games])
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  if (games === null) {
+    return (
+      <>
+        <Navbar games={0} onQuery={setQuery} favs={favs} favOnly={favOnly} onFavOnly={setFavOnly} searchOpen={searchOpen} onSearchOpen={setSearchOpen} />
+        <main>
+          <div className="badge-row"><CheckedBadge /></div>
+          <section className="section"><div className="grid"><span className="empty">Loading catalog…</span></div></section>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -59,7 +84,7 @@ export default function Home() {
           <CheckedBadge />
         </div>
 
-        {!query && genre === 'All' && !favOnly && (
+        {!query && genre === 'All' && !favOnly && featured && (
           <Hero game={featured} onFav={toggle} fav={favs.includes(featured?.id ?? '')} />
         )}
 
@@ -120,12 +145,12 @@ export default function Home() {
       </main>
 
       <nav className="bottom-nav" aria-label="Mobile navigation">
-        <button type="button" className="bottom-nav-btn active" onClick={scrollTop}>
+        <button type="button" className={`bottom-nav-btn${atTop && !favOnly ? ' active' : ''}`} onClick={scrollTop}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 12 12 4l9 8M5 10v10h5v-6h4v6h5V10" strokeLinejoin="round" /></svg>
           <span>Home</span>
           <span className="dot" />
         </button>
-        <button type="button" className="bottom-nav-btn" onClick={() => scrollTo('explore')}>
+        <button type="button" className={`bottom-nav-btn${!atTop && !favOnly ? ' active' : ''}`} onClick={() => scrollTo('explore')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
           <span>Browse</span>
           <span className="dot" />

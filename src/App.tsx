@@ -1,14 +1,17 @@
 import { useEffect } from 'react'
-import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, Navigate, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
 import './App.css'
 import Home from './pages/Home'
 import GamePage from './pages/GamePage'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
+  const navType = useNavigationType()
+
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    if (navType === 'PUSH') window.scrollTo(0, 0)
+  }, [pathname, navType])
+
   return null
 }
 

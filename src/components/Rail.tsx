@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import type { Game } from '../data/games'
+import type { Game } from '../data/gameTypes'
 import GameCover from './GameCover'
 
 interface Props {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Game } from '../data/games'
+import type { Game } from '../data/gameTypes'
 
 interface Props {
   game: Game
@@ -15,6 +15,8 @@ export default function Hero({ game, onFav, fav }: Props) {
 
   const bgWall = game.wallpaper || ''
   const coverSrc = game.cover || game.wallpaper || ''
+  const [c1, c2] = game.colors ?? ['#232d3a', '#0d1117']
+  const links = game.mirrors.length + 1
 
   return (
     <section
@@ -30,9 +32,11 @@ export default function Hero({ game, onFav, fav }: Props) {
       {bgWall && !bgGone && (
         <img className="hero-bg" src={bgWall} alt="" onError={() => setBgGone(true)} />
       )}
-      {game.cover && (
-        <div className="hero-bg-blur" style={{ backgroundImage: `url(${game.cover})` }} aria-hidden="true" />
-      )}
+      <div
+        className="hero-glow"
+        style={{ backgroundImage: `radial-gradient(120% 90% at 70% 30%, ${c1} 0%, transparent 60%), radial-gradient(100% 90% at 20% 90%, ${c2} 0%, transparent 55%), linear-gradient(160deg, ${c1}e6 0%, ${c2}f2 100%)` }}
+        aria-hidden="true"
+      />
       <div className="hero-shade" aria-hidden="true" />
 
       <div className="hero-inner">
@@ -41,7 +45,9 @@ export default function Hero({ game, onFav, fav }: Props) {
           <h1 className="hero-title">{game.title}</h1>
           <div className="hero-meta">
             <span className="year-badge year-badge-lg">{game.year || '—'}</span>
-            <span className="rating-label">{game.mirrors.length + 1} mirror links</span>
+            <span className="rating-label">
+              {links} mirror link{links === 1 ? '' : 's'}
+            </span>
             {game.size && <span className="rating-label">{game.size}</span>}
           </div>
           {game.desc && <p className="hero-desc">{game.desc}</p>}

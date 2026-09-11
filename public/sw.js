@@ -1,8 +1,10 @@
 const CACHE = 'pcvault-v2'
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png']
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()))
+  const scope = self.registration.scope
+  const index = scope.endsWith('/') ? scope : scope + '/'
+  const shell = [index, index + 'index.html', index + 'manifest.webmanifest', index + 'games.json', index + 'icons/icon-192.png', index + 'icons/icon-512.png']
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(shell)).then(() => self.skipWaiting()))
 })
 
 self.addEventListener('activate', (e) => {
@@ -18,8 +20,11 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url)
   if (url.origin !== location.origin) return
 
+  const scope = self.registration.scope
+  const index = scope.endsWith('/') ? scope : scope + '/'
+
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).catch(() => caches.match('/index.html').then((r) => r || caches.match('/'))))
+    e.respondWith(fetch(e.request).catch(() => caches.match(index + 'index.html').then((r) => r || caches.match(index))))
     return
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { games } from '../data/games'
+import { useGames } from '../data/useGames'
 import TrailerEmbed from '../components/TrailerEmbed'
 import ScreenshotGallery from '../components/ScreenshotGallery'
 import GameCover from '../components/GameCover'
@@ -20,9 +20,10 @@ function applyMeta(title: string, desc: string, img?: string) {
 
 export default function GamePage() {
   const { id } = useParams()
-  const game = useMemo(() => games.find((g) => g.id === id), [id])
+  const games = useGames()
+  const game = useMemo(() => (games ?? []).find((g) => g.id === id), [games, id])
   const { favs, toggle } = useFavorites()
-  const [copied, setCopied] = useState<'link' | 'all' | null>(null)
+  const [copied, setCopied] = useState<'link' | 'all' | 'pass' | null>(null)
   const [bgGone, setBgGone] = useState(false)
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function GamePage() {
     )
   }
 
-  const copy = async (text: string, which: 'link' | 'all') => {
+  const copy = async (text: string, which: 'link' | 'all' | 'pass') => {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(which)
@@ -75,9 +76,11 @@ export default function GamePage() {
         {game.wallpaper && !bgGone && (
           <img className="game-hero-bg" src={game.wallpaper} alt="" onError={() => setBgGone(true)} />
         )}
-        {game.cover && (
-          <div className="game-hero-bg-blur" style={{ backgroundImage: `url(${game.cover})` }} aria-hidden="true" />
-        )}
+        <div
+          className="game-hero-glow"
+          style={{ backgroundImage: `radial-gradient(120% 90% at 75% 25%, ${game.colors?.[0] ?? '#232d3a'} 0%, transparent 60%), radial-gradient(100% 90% at 15% 100%, ${game.colors?.[1] ?? '#0d1117'} 0%, transparent 55%), linear-gradient(170deg, ${(game.colors?.[0] ?? '#232d3a')}e6 0%, ${(game.colors?.[1] ?? '#0d1117')}f2 100%)` }}
+          aria-hidden="true"
+        />
         <div className="game-hero-scrim" aria-hidden="true" />
 
         <div className="game-hero-inner">
@@ -111,7 +114,7 @@ export default function GamePage() {
               {game.size && <div className="stat"><span className="stat-label">Game Size</span><span className="stat-value">{game.size}</span></div>}
               <div className="stat"><span className="stat-label">Genre</span><span className="stat-value">{game.genres[0] ?? '—'}</span></div>
               {game.languages && <div className="stat"><span className="stat-label">Language</span><span className="stat-value">{game.languages}</span></div>}
-              <div className="stat"><span className="stat-label">Repack</span><span className="stat-value">{game.date.slice(0, 10)}</span></div>
+              <div className="stat"><span className="stat-label">Repack</span><span className="stat-value">{game.repack ?? game.date.slice(0, 10)}</span></div>
             </div>
 
             {game.desc && <p className="game-desc">{game.desc}</p>}
@@ -151,8 +154,8 @@ export default function GamePage() {
               {game.password && (
                 <p className="dl-note">
                   Password: <code>{game.password}</code>
-                  <button type="button" className="mini-copy" onClick={() => copy(game.password ?? '', 'all')} aria-label="Copy password">
-                    copy
+                  <button type="button" className="mini-copy" onClick={() => copy(game.password ?? '', 'pass')} aria-label="Copy password">
+                    {copied === 'pass' ? 'Copied!' : 'copy'}
                   </button>
                 </p>
               )}

@@ -1,4 +1,5 @@
-import type { Game } from '../data/games'
+import { useCallback, useMemo } from 'react'
+import type { Game } from '../data/gameTypes'
 import GameCard from './GameCard'
 
 interface Props {
@@ -13,14 +14,25 @@ interface Props {
 }
 
 export default function GameGrid({ games, title, favs, onToggleFav, sort, onSort, favOnly, onFavOnly }: Props) {
-  const sorted = [...games].sort((a, b) => {
-    if (sort === 'year') return (b.year || 0) - (a.year || 0)
-    if (sort === 'az') return a.title.localeCompare(b.title)
-    return 0
-  })
+  const sorted = useMemo(
+    () =>
+      [...games].sort((a, b) => {
+        if (sort === 'year') return (b.year || 0) - (a.year || 0)
+        if (sort === 'az') return a.title.localeCompare(b.title)
+        return 0
+      }),
+    [games, sort],
+  )
 
   const shown = sorted
   const favCount = favs.length
+
+  const toggleFav = useCallback(
+    (id: string) => {
+      onToggleFav(id)
+    },
+    [onToggleFav],
+  )
 
   return (
     <section className="section">
@@ -49,7 +61,7 @@ export default function GameGrid({ games, title, favs, onToggleFav, sort, onSort
       {shown.length ? (
         <div className="grid">
           {shown.map((g, idx) => (
-            <GameCard key={g.id} game={g} i={idx} fav={favs.includes(g.id)} onToggleFav={onToggleFav} />
+            <GameCard key={g.id} game={g} i={idx} fav={favs.includes(g.id)} onToggleFav={toggleFav} />
           ))}
         </div>
       ) : (

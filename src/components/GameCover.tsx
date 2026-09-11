@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { Game } from '../data/games'
+import { memo, useState } from 'react'
+import type { Game } from '../data/gameTypes'
 
 interface Props {
   game: Game
@@ -7,7 +7,7 @@ interface Props {
   ratio?: string
 }
 
-export default function GameCover({ game, variant = 'poster', ratio }: Props) {
+function GameCover({ game, variant = 'poster', ratio }: Props) {
   const [gone, setGone] = useState(false)
   const w = 460
   const h = variant === 'wide' ? 215 : 690
@@ -56,3 +56,5 @@ export default function GameCover({ game, variant = 'poster', ratio }: Props) {
     </svg>
   )
 }
+
+export default memo(GameCover)

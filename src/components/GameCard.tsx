@@ -1,6 +1,7 @@
+import { memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CSSProperties } from 'react'
-import type { Game } from '../data/games'
+import type { Game } from '../data/gameTypes'
 import GameCover from './GameCover'
 
 interface Props {
@@ -12,12 +13,15 @@ interface Props {
 
 const NEW_DAYS = 60
 
-export default function GameCard({ game, fav, onToggleFav, i }: Props) {
+function GameCard({ game, fav, onToggleFav, i }: Props) {
   const navigate = useNavigate()
-  const isNew = (() => {
+
+  const isNew = useMemo(() => {
     const d = game.date ? Date.parse(game.date) : NaN
     return !Number.isNaN(d) && Date.now() - d < NEW_DAYS * 86400000
-  })()
+  }, [game.date])
+
+  const links = game.mirrors.length + 1
 
   return (
     <article
@@ -72,9 +76,13 @@ export default function GameCard({ game, fav, onToggleFav, i }: Props) {
         </div>
         <div className="card-footer">
           <span className="size">{game.size ?? '—'}</span>
-          <span className="downloads">{game.mirrors.length + 1} links</span>
+          <span className="downloads">
+            {links} link{links === 1 ? '' : 's'}
+          </span>
         </div>
       </div>
     </article>
   )
 }
+
+export default memo(GameCard)
