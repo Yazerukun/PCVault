@@ -38,9 +38,13 @@ hosted as a zero-backend SPA on GitHub Pages + Cloudflare Pages.
 ## Deploy
 
 - GitHub Pages: `.github/workflows/deploy.yml` (auto on push to `main`)
-- Cloudflare Pages: `.github/workflows/cloudflare.yml` (needs repo secrets
-  `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`)
+- Cloudflare Pages: **local auto-deploy** — `~/.config/systemd/user/pcvault-autodeploy.timer`
+  polls `origin/main` every 10 min; on a new commit it fast-forwards, runs
+  `npm run build`, and uploads via `wrangler pages deploy dist --project-name pcvault`
+  (runs from home IP — the Cloudflare API token is IP-restricted, so CI/datacenter
+  IPs are blocked). Works even when commits come from another machine.
 - Manual Cloudflare: `wrangler pages deploy dist --project-name pcvault`
+- `systemctl --user disable pcvault-autodeploy.timer` to opt out.
 
 ## Build / checks
 
