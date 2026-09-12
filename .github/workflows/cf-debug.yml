@@ -1,0 +1,25 @@
+name: CF Debug
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check token
+        run: |
+          echo "token_len=$(printf '%s' \"$CLOUDFLARE_API_TOKEN\" | wc -c)"
+          echo "first4=${CLOUDFLARE_API_TOKEN:0:4} last4=${CLOUDFLARE_API_TOKEN: -4}"
+          echo "acct=${CLOUDFLARE_ACCOUNT_ID}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: whoami
+        run: npx -y wrangler@4.130.0 whoami
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
