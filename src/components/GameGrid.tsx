@@ -9,15 +9,29 @@ interface Props {
   onToggleFav: (id: string) => void
   sort: string
   onSort: (s: string) => void
+  years: number[]
+  year: number
+  onYear: (y: number) => void
   favOnly: boolean
   onFavOnly: (b: boolean) => void
 }
 
-export default function GameGrid({ games, title, favs, onToggleFav, sort, onSort, favOnly, onFavOnly }: Props) {
+function toGB(size?: string): number {
+  if (!size) return 0
+  const m = size.match(/([\d.]+)\s*(KB|MB|GB|TB)/i)
+  if (!m) return 0
+  const n = parseFloat(m[1])
+  const u = m[2].toUpperCase()
+  return u === 'KB' ? n / 1048576 : u === 'MB' ? n / 1024 : u === 'GB' ? n : u === 'TB' ? n * 1024 : 0
+}
+
+export default function GameGrid({ games, title, favs, onToggleFav, sort, onSort, years, year, onYear, favOnly, onFavOnly }: Props) {
   const sorted = useMemo(
     () =>
       [...games].sort((a, b) => {
         if (sort === 'year') return (b.year || 0) - (a.year || 0)
+        if (sort === 'oldest') return (a.year || 0) - (b.year || 0)
+        if (sort === 'size') return toGB(b.size) - toGB(a.size)
         if (sort === 'az') return a.title.localeCompare(b.title)
         return 0
       }),
@@ -53,8 +67,18 @@ export default function GameGrid({ games, title, favs, onToggleFav, sort, onSort
           <select className="sort-select" value={sort} onChange={(e) => onSort(e.target.value)} aria-label="Sort games">
             <option value="default">Featured</option>
             <option value="year">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="size">Size ↓</option>
             <option value="az">A–Z</option>
           </select>
+          {years.length > 1 && (
+            <select className="sort-select" value={year} onChange={(e) => onYear(Number(e.target.value))} aria-label="Filter by year">
+              <option value={0}>All years</option>
+              {years.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 

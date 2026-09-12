@@ -10,3 +10,11 @@ export interface LatestEntry {
   link: string
   date: string
 }
+
+export interface GameHealth {
+  live: number
+  dead: number
+  total: number
+}
+
+export type HealthMap = Record<string, GameHealth>

@@ -5,6 +5,8 @@ import TrailerEmbed from '../components/TrailerEmbed'
 import ScreenshotGallery from '../components/ScreenshotGallery'
 import GameCover from '../components/GameCover'
 import { useFavorites } from '../hooks/useFavorites'
+import { useJson } from '../hooks/useJson'
+import type { HealthMap } from '../data/meta'
 import type { CSSProperties } from 'react'
 
 function applyMeta(title: string, desc: string, img?: string) {
@@ -23,6 +25,8 @@ export default function GamePage() {
   const games = useGames()
   const game = useMemo(() => (games ?? []).find((g) => g.id === id), [games, id])
   const { favs, toggle } = useFavorites()
+  const healthAll = useJson<HealthMap>('/health.json')
+  const health = healthAll?.[game?.id ?? ''] ?? null
   const [copied, setCopied] = useState<'link' | 'all' | 'pass' | null>(null)
   const [bgGone, setBgGone] = useState(false)
 
@@ -149,6 +153,15 @@ export default function GamePage() {
                 <button type="button" className={`btn-copy${copied === 'all' ? ' copied' : ''}`} onClick={() => copy(allLinks.join('\n'), 'all')} disabled={!allLinks.length}>
                   {copied === 'all' ? 'Copied!' : 'Copy all links'}
                 </button>
+                <a
+                  className="btn-report"
+                  href={`https://github.com/FrancisIanMuyco/PCVault/issues/new?title=${encodeURIComponent(`Broken link: ${game.title}`)}&body=${encodeURIComponent(`**Game:** ${game.title}\n**ID:** \`${game.id}\`\n\n**Broken link:**\n\`\`\`\n${game.download}\n\`\`\``)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Open a GitHub issue so the mirror gets re-verified"
+                >
+                  Report broken link
+                </a>
               </div>
 
               {game.password && (
@@ -169,9 +182,17 @@ export default function GamePage() {
         <section className="page-section">
           <div className="mirror-head">
             <h2 className="section-title">Mirror Links</h2>
-            <span className="mirror-head-count">
-              {game.mirrors.length} live mirror{game.mirrors.length === 1 ? '' : 's'} &#183; {groups.length} host{groups.length === 1 ? '' : 's'}
-            </span>
+            <div className="mirror-head-right">
+              <span className="mirror-head-count">
+                {game.mirrors.length} live mirror{game.mirrors.length === 1 ? '' : 's'} &#183; {groups.length} host{groups.length === 1 ? '' : 's'}
+              </span>
+              {health && (
+                <span className="health-badge" title="Links that passed the auto-verification pass">
+                  <span className={`health-dot${health.live ? ' ok' : ''}`} />
+                  {health.live}/{health.total} verified{health.dead ? ` · ${health.dead} dead` : ''}
+                </span>
+              )}
+            </div>
           </div>
           {groups.map(([host, list]) => (
             <div className="mirror-group" key={host}>

@@ -13,6 +13,7 @@ import { useFavorites } from '../hooks/useFavorites'
 export default function Home() {
   const [query, setQuery] = useState('')
   const [genre, setGenre] = useState('All')
+  const [year, setYear] = useState(0)
   const [sort, setSort] = useState('default')
   const [favOnly, setFavOnly] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -32,6 +33,12 @@ export default function Home() {
 
   const genres = useMemo(() => (games ? allGenres(games) : []), [games])
 
+  const years = useMemo(() => {
+    const set = new Set<number>()
+    for (const g of games ?? []) if (g.year) set.add(g.year)
+    return Array.from(set).sort((a, b) => b - a)
+  }, [games])
+
   const counts = useMemo(() => {
     const map: Record<string, number> = {}
     for (const g of games ?? []) for (const x of new Set(g.genres)) map[x] = (map[x] || 0) + 1
@@ -45,10 +52,11 @@ export default function Home() {
     return (games ?? []).filter((g) => {
       const matchQ = !q || g.title.toLowerCase().includes(q) || g.genres.some((x) => x.toLowerCase().includes(q))
       const matchG = genre === 'All' || g.genres.includes(genre)
+      const matchY = !year || g.year === year
       const matchFav = !favOnly || favs.includes(g.id)
-      return matchQ && matchG && matchFav
+      return matchQ && matchG && matchY && matchFav
     })
-  }, [query, genre, favOnly, favs, games])
+  }, [query, genre, year, favOnly, favs, games])
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -104,6 +112,9 @@ export default function Home() {
             onToggleFav={toggle}
             sort={sort}
             onSort={setSort}
+            years={years}
+            year={year}
+            onYear={setYear}
             favOnly={favOnly}
             onFavOnly={(b) => {
               setFavOnly(b)
